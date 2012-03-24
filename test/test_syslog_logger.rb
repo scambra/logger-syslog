@@ -233,6 +233,10 @@ class TestLogger < Test::Unit::TestCase
     msg = log :unknown, 'unknown level message'
     assert_equal LEVEL_LABEL_MAP[Logger::UNKNOWN], msg.severity
 
+    assert_raise(ArgumentError) do
+      log :unknown, 'unknown level message', :dummy_progname
+    end
+
     @logger.level = Logger::UNKNOWN
     msg = log :unknown, 'unknown level message'
     assert_equal LEVEL_LABEL_MAP[Logger::UNKNOWN], msg.severity
@@ -269,6 +273,10 @@ class TestLogger < Test::Unit::TestCase
   def test_fatal
     msg = log :fatal, 'fatal level message'
     assert_equal LEVEL_LABEL_MAP[Logger::FATAL], msg.severity
+
+    assert_raise(ArgumentError) do
+      log :fatal, 'fatal level message', :dummy_progname
+    end
 
     @logger.level = Logger::UNKNOWN
     msg = log :fatal, 'fatal level message'
@@ -307,6 +315,10 @@ class TestLogger < Test::Unit::TestCase
     msg = log :error, 'error level message'
     assert_equal LEVEL_LABEL_MAP[Logger::ERROR], msg.severity
 
+    assert_raise(ArgumentError) do
+      log :error, 'error level message', :dummy_progname
+    end
+
     @logger.level = Logger::UNKNOWN
     msg = log :error, 'error level message'
     assert_equal '', msg.line
@@ -343,6 +355,10 @@ class TestLogger < Test::Unit::TestCase
   def test_warn
     msg = log :warn, 'warn level message'
     assert_equal LEVEL_LABEL_MAP[Logger::WARN], msg.severity
+
+    assert_raise(ArgumentError) do
+      log :warn, 'warn level message', :dummy_progname
+    end
 
     @logger.level = Logger::UNKNOWN
     msg = log :warn, 'warn level message'
@@ -381,6 +397,10 @@ class TestLogger < Test::Unit::TestCase
     msg = log :info, 'info level message'
     assert_equal LEVEL_LABEL_MAP[Logger::INFO], msg.severity
 
+    assert_raise(ArgumentError) do
+      log :info, 'info level message', :dummy_progname
+    end
+
     @logger.level = Logger::UNKNOWN
     msg = log :info, 'info level message'
     assert_equal '', msg.line
@@ -418,6 +438,10 @@ class TestLogger < Test::Unit::TestCase
     msg = log :debug, 'debug level message'
     assert_equal LEVEL_LABEL_MAP[Logger::DEBUG], msg.severity
 
+    assert_raise(ArgumentError) do
+      log :debug, 'debug level message', :dummy_progname
+    end
+
     @logger.level = Logger::UNKNOWN
     msg = log :debug, 'debug level message'
     assert_equal '', msg.line
@@ -451,6 +475,22 @@ class TestLogger < Test::Unit::TestCase
     assert_equal false, @logger.debug?
   end
 
+  [:unknown, :fatal, :error, :warn, :info, :debug].each do |severity|
+    class_eval <<-EOS, __FILE__, __LINE__
+      def test_#{severity}_block
+        msg = log :#{severity}, '#{severity} level message'
+        msg_blk = log(:#{severity}){ '#{severity} level message' }
+        [:severity, :msg].each do |attr|
+          assert_equal msg.send(attr), msg_blk.send(attr)
+        end
+
+        msg_blk = log(:#{severity}, :dummy_progname){ '#{severity} level message' }
+        [:severity, :msg].each do |attr|
+          assert_equal msg.send(attr), msg_blk.send(attr)
+        end
+      end
+    EOS
+  end
 end
 
 class TestSyslogLogger < TestLogger
@@ -464,8 +504,8 @@ class TestSyslogLogger < TestLogger
     attr_reader :line, :label, :datetime, :pid, :severity, :progname, :msg
     def initialize(line)
       @line = line
-      return unless /\A(\w+) - (.*)\Z/ =~ @line
-      severity, @msg = $1, $2
+      return unless /\A(\w+) - \[([^\]]*)\]\s+\[[^\]]+\]: ([\x0-\xff]*)/ =~ @line
+      severity, @datetime, @msg = $1, $2, $3
       severity = Logger::Syslog::LOGGER_MAP.invert[severity.downcase.intern]
       @severity = severity.to_s.upcase
       @severity = 'ANY' if @severity == 'UNKNOWN'

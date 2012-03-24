@@ -52,13 +52,13 @@ class Logger::Syslog
   # Builds a methods for level +meth+.
   for severity in Logger::Severity.constants
     class_eval <<-EOT, __FILE__, __LINE__
-      def #{severity.downcase}(message = nil, progname = nil, &block)  # def debug(message = nil, progname = nil, &block)
-        add(#{severity}, message, progname, &block)                    #   add(DEBUG, message, progname, &block)
-      end                                                              # end
-                                                                       #
-      def #{severity.downcase}?                                        # def debug?
-        @level <= #{severity}                                          #   @level <= DEBUG
-      end                                                              # end
+      def #{severity.downcase}(progname = nil, &block)  # def debug(progname = nil, &block)
+        add(#{severity}, nil, progname, &block)         #   add(DEBUG, nil, progname, &block)
+      end                                               # end
+                                                        #
+      def #{severity.downcase}?                         # def debug?
+        @level <= #{severity}                           #   @level <= DEBUG
+      end                                               # end
     EOT
   end
 
