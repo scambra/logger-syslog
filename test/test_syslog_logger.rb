@@ -8,19 +8,15 @@ class << MockSyslog
 
   @line = nil
 
-  Logger::Syslog::LOGGER_MAP.values.uniq.each do |level|
-    eval <<-EOM
-      def #{level}(message)
-        @line = message
-      end
-    EOM
-  end
-
   attr_reader :line
   attr_reader :program_name
 
   def open(program_name)
     @program_name = program_name
+  end
+
+  def log(priority, message)
+    @line = message
   end
 
   def reset

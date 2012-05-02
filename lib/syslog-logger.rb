@@ -27,12 +27,12 @@ class Logger::Syslog
 
   # Maps Logger warning types to syslog(3) warning types.
   LOGGER_MAP = {
-    :unknown => :alert,
-    :fatal   => :crit,
-    :error   => :err,
-    :warn    => :warning,
-    :info    => :info,
-    :debug   => :debug
+    :unknown => Syslog::LOG_ALERT,
+    :fatal   => Syslog::LOG_CRIT,
+    :error   => Syslog::LOG_ERR,
+    :warn    => Syslog::LOG_WARNING,
+    :info    => Syslog::LOG_INFO,
+    :debug   => Syslog::LOG_DEBUG
   }
 
   # Maps Logger log levels to their values so we can silence.
@@ -84,6 +84,10 @@ class Logger::Syslog
   # when no formatter is set.
   attr_accessor :formatter
 
+  # This is the facility the logger will log to. You can have several loggers
+  # that log to different facilities.
+  attr_accessor :facility
+
   alias sev_threshold level
   alias sev_threshold= level=
 
@@ -98,6 +102,7 @@ class Logger::Syslog
     @formatter         = nil
     @progname          = nil
     @level             = Logger::DEBUG
+    @facility          = facility
 
     return if defined? SYSLOG
     self.class.const_set :SYSLOG, Syslog.open(program_name, logopts, facility)
@@ -120,7 +125,7 @@ class Logger::Syslog
 
     # breakup multiple lines into multiple syslog messages
     message.each_line do | msg |
-      SYSLOG.send(LEVEL_LOGGER_MAP[severity], format_message(format_severity(severity), Time.now, progname, clean(msg.chop)))
+      SYSLOG.log(LEVEL_LOGGER_MAP[severity] | @facility, format_message(format_severity(severity), Time.now, progname, clean(msg.chop)))
     end
     true
   end
@@ -143,7 +148,14 @@ class Logger::Syslog
   private
 
     # Severity label for logging. (max 5 char)
-    SEV_LABEL = %w(DEBUG INFO WARN ERROR FATAL ANY)
+    SEV_LABEL = {
+      Logger::DEBUG => "DEBUG",
+      Logger::INFO => "INFO",
+      Logger::WARN => "WARN",
+      Logger::ERROR => "ERROR",
+      Logger::FATAL => "FATAL",
+      Logger::UNKNOWN => "ANY"
+    }
 
     def format_severity(severity)
       SEV_LABEL[severity] || 'ANY'
