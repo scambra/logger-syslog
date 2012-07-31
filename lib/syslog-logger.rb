@@ -117,7 +117,9 @@ class Logger::Syslog
         progname = @progname
       end
     end
-    SYSLOG.send(LEVEL_LOGGER_MAP[severity], format_message(format_severity(severity), Time.now, progname, clean(message)))
+    message.each_line do | msg |
+      SYSLOG.send(LEVEL_LOGGER_MAP[severity], format_message(format_severity(severity), Time.now, progname, clean(msg.chop)))
+    end
     true
   end
 
