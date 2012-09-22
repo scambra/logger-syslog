@@ -11,7 +11,7 @@ class << MockSyslog
   Logger::Syslog::LOGGER_MAP.values.uniq.each do |level|
     eval <<-EOM
       def #{level}(message)
-        @line = "#{level.to_s.upcase} - \#{message}"
+        @line = message
       end
     EOM
   end
@@ -504,11 +504,8 @@ class TestSyslogLogger < TestLogger
     attr_reader :line, :label, :datetime, :pid, :severity, :progname, :msg
     def initialize(line)
       @line = line
-      return unless /\A(\w+) - \[([^\]]*)\]\s+\[[^\]]+\]: ([\x0-\xff]*)/ =~ @line
-      severity, @datetime, @msg = $1, $2, $3
-      severity = Logger::Syslog::LOGGER_MAP.invert[severity.downcase.intern]
-      @severity = severity.to_s.upcase
-      @severity = 'ANY' if @severity == 'UNKNOWN'
+      return unless /\A\[\s*([^\]]+)\] ([\x0-\xff]*)/ =~ @line
+      @severity, @msg = $1, $2
     end
   end
 
