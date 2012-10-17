@@ -1,6 +1,6 @@
 require 'test/unit'
 require 'tempfile'
-require 'syslog-logger'
+require 'logger-syslog'
 
 module MockSyslog; end
 

@@ -6,7 +6,7 @@ class Logger::Syslog
   include Logger::Severity
 
   # The version of Logger::Syslog you are using.
-  VERSION = '1.6.8'
+  VERSION = '1.7.0'
 
   # From 'man syslog.h':
   # LOG_EMERG   A panic condition was reported to all processes.

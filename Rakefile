@@ -9,5 +9,4 @@ Rake::TestTask.new(:test) do |test|
   test.verbose = true
 end
 
-desc 'Default: run tests'
 task :default => :test
