@@ -38,7 +38,7 @@ Version 1.6.7 takes a formatter as logger does and uses call to format the messa
 By default, Logger::Syslog uses the program name 'rails' and the facility 'user', but this can be
 changed via the arguments to Logger::Syslog.new:
 
-  RAILS_DEFAULT_LOGGER = Logger::Syslog.new('mygreatapp', Syslog::LOG_LOCAL7)
+  RAILS_DEFAULT_LOGGER = ActiveSupport::TaggedLogging.new(Logger::Syslog.new('mygreatapp', Syslog::LOG_LOCAL7))
   
 === BSD syslog setup
 
