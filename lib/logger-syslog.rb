@@ -6,7 +6,7 @@ class Logger::Syslog
   include Logger::Severity
 
   # The version of Logger::Syslog you are using.
-  VERSION = '1.7.0'
+  VERSION = '1.7.1'
 
   # From 'man syslog.h':
   # LOG_EMERG   A panic condition was reported to all processes.
@@ -125,7 +125,7 @@ class Logger::Syslog
 
     # breakup multiple lines into multiple syslog messages
     message.each_line do | msg |
-      SYSLOG.log(LEVEL_LOGGER_MAP[severity] | @facility, format_message(format_severity(severity), Time.now, progname, clean(msg.chop)))
+      SYSLOG.log(LEVEL_LOGGER_MAP[severity] | @facility, format_message(format_severity(severity), Time.now, progname, clean(msg)))
     end
     true
   end
